@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
+
     const req = ctx.getContext().req;
 
     await this.authenticateUser(req);
@@ -29,10 +29,9 @@ export class AuthGuard implements CanActivate {
   }
 
   private async authenticateUser(req: any): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
     const bearerHeader = req.headers.authorization;
     // Bearer eylskfdjlsdf309
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const token = bearerHeader?.split(' ')[1];
 
     if (!token) {
@@ -40,15 +39,25 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-argument
-      req.user = await this.jwtService.verify(token);
+      const payload = await this.jwtService.verify(token);
+      const uid = payload.uid;
+      if (!uid) {
+        throw new UnauthorizedException(
+          'Invalid token. No uid present in the token',
+        );
+      }
+
+      const user = await this.prisma.user.findUnique({ where: { uid } });
+      if (!user) {
+        throw new UnauthorizedException(
+          'Invalid token. No user present in the token',
+        );
+      }
+
+      req.user = payload;
     } catch (err) {
       console.error('Token validation error:', err);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (!req.user) {
-      throw new UnauthorizedException('Invalid token.');
+      throw err;
     }
   }
 
@@ -56,9 +65,7 @@ export class AuthGuard implements CanActivate {
     req: any,
     context: ExecutionContext,
   ): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
     const userRoles = await this.getUserRoles(req.user.uid);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     req.user.roles = userRoles;
 
     const requiredRoles = this.getMetadata<Role[]>('roles', context);
@@ -85,7 +92,6 @@ export class AuthGuard implements CanActivate {
     const roles: Role[] = [];
 
     const [admin] = await Promise.all(rolePromises);
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     admin && roles.push('admin');
 
     return roles;
