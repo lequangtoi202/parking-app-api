@@ -15,6 +15,5 @@ export const AllowAuthenticated = (...roles: Role[]) =>
 
 export const GetUser = createParamDecorator((data, ctx: ExecutionContext) => {
   const context = GqlExecutionContext.create(ctx);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
   return context.getContext().req.user;
 });
