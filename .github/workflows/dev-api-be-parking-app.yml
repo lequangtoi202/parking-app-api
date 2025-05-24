@@ -32,7 +32,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: 🛠 Build Docker image
-        run: docker build -t ${{ secrets.IMAGE_NAME }}
+        run: docker build -t ${{ secrets.IMAGE_NAME }} .
 
       - name: 📤 Push image to Docker Hub
         run: docker push ${{ secrets.IMAGE_NAME }}
