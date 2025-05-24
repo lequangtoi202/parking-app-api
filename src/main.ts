@@ -26,5 +26,4 @@ async function bootstrap() {
   Logger.log(`Server is listening on ${await app.getUrl()}`, 'Bootstrap');
 }
 
-//@typescript-eslint/no-floating-promises
-void bootstrap();
+bootstrap();

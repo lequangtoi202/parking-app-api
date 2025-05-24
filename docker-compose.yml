@@ -3,7 +3,7 @@ version: "3.8"
 services:
   db:
     container_name: parking_db
-    image: postgres
+    image: postgres:16
     restart: always
     ports:
       - 2010:5432
@@ -13,5 +13,20 @@ services:
       POSTGRES_PASSWORD: password
     volumes:
       - db_data_parking:/var/lib/postgresql/data
+  app:
+    container_name: parking_app_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/postgres
+      JWT_SECRET: 26Y13489Y1289673418297SDFHWEUYSQADFG72T234123
+      PORT: 4000
+    restart: always
+
 volumes:
   db_data_parking:
